@@ -36,12 +36,18 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
+#define PIN_RESET (0)
+#define PIN_SET (1)
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
  UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+
+uint8_t array[10];
+GPIO_PinState buttom;
 
 /* USER CODE END PV */
 
@@ -228,7 +234,42 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 GPIO_PinState Debouncer ()
 {
-static uint8_t counter;
+
+static uint8_t i = 0;
+static float sum = 0.0;
+static float average = 0.0;
+
+if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) <= PIN_RESET)
+{
+	array[i] = 1;
+}
+else
+{
+	array[i] = 0;
+}
+
+sum = array[0] + array[1] + array[2] + array[3] + array[4] + array[5] + array[6] + array[7] + array[8] + array[9];
+average = sum / 10;
+
+if (i >= 9)
+{
+	i = 0;
+}
+else
+	{
+	i++;
+	}
+
+if (average >= 0.5)
+	{
+		buttom = 1;
+	}
+	else
+	{
+		buttom = 0;
+	}
+HAL_Delay(100);
+return (buttom);
 
 }
 /* USER CODE END 4 */
