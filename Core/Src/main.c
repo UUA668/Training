@@ -39,6 +39,8 @@
 #define PIN_RESET (0)
 #define PIN_SET (1)
 
+#define DEBOUNCE_BUFFER_SIZE		(10)
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -46,8 +48,7 @@
 
 /* USER CODE BEGIN PV */
 
-uint8_t array[10];
-GPIO_PinState buttom;
+GPIO_PinState button;		// Debounced pin button state
 
 /* USER CODE END PV */
 
@@ -57,7 +58,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
-GPIO_PinState Debouncer ();
+GPIO_PinState Debouncer(GPIO_PinState current_pin_state);
 
 /* USER CODE END PFP */
 
@@ -104,8 +105,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  button = Debouncer(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));		// Debouncing GPIOC input
+
+	  HAL_Delay(10);
+
     /* USER CODE END WHILE */
-	 Debouncer ();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -232,45 +237,35 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-GPIO_PinState Debouncer ()
+GPIO_PinState Debouncer(GPIO_PinState current_pin_state)
 {
+	static GPIO_PinState array[DEBOUNCE_BUFFER_SIZE];			// Buffer to store input signals
+	static uint8_t buffer_index = 0;
+	uint32_t	temp_val = 0;
 
-static uint8_t i = 0;
-static float sum = 0.0;
-static float average = 0.0;
+	array[buffer_index] = current_pin_state;		// Store current pin state to the actual buffer position
 
-if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) <= PIN_RESET)
-{
-	array[i] = 1;
-}
-else
-{
-	array[i] = 0;
-}
-
-sum = array[0] + array[1] + array[2] + array[3] + array[4] + array[5] + array[6] + array[7] + array[8] + array[9];
-average = sum / 10;
-
-if (i >= 9)
-{
-	i = 0;
-}
-else
+	if (buffer_index < (DEBOUNCE_BUFFER_SIZE - 1))	// if next buffer index is out of bound, set it to the beginning
 	{
-	i++;
-	}
-
-if (average >= 0.5)
-	{
-		buttom = 1;
+		++buffer_index;
 	}
 	else
 	{
-		buttom = 0;
+		buffer_index = 0;
 	}
-HAL_Delay(100);
-return (buttom);
 
+
+	for (int i = 0; i < DEBOUNCE_BUFFER_SIZE; i++)	// SUM button state values
+	{
+		temp_val += array[buffer_index];
+	}
+
+	if (temp_val > (DEBOUNCE_BUFFER_SIZE / 2))		// If more than half of the input signals was SET then return button state SET
+	{
+		return GPIO_PIN_SET;
+	}
+
+	return GPIO_PIN_RESET;
 }
 /* USER CODE END 4 */
 
