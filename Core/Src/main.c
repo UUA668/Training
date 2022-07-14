@@ -51,6 +51,8 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
+GPIO_PinState Debouncer ();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -97,8 +99,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	  HAL_Delay(500);
+	 Debouncer ();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -225,7 +226,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+GPIO_PinState Debouncer ()
+{
+static uint8_t counter;
 
+}
 /* USER CODE END 4 */
 
 /**
