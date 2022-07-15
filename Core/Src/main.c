@@ -38,7 +38,7 @@
 
 #define PIN_RESET (0)
 #define PIN_SET (1)
-
+#define MN (10)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -46,7 +46,7 @@
 
 /* USER CODE BEGIN PV */
 
-uint8_t array[10];
+uint8_t array[MN];
 GPIO_PinState buttom;
 
 /* USER CODE END PV */
@@ -57,7 +57,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
-GPIO_PinState Debouncer ();
+GPIO_PinState Debouncer();
 
 /* USER CODE END PFP */
 
@@ -105,7 +105,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	 Debouncer ();
+	 Debouncer();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -232,12 +232,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-GPIO_PinState Debouncer ()
+GPIO_PinState Debouncer()
 {
 
 static uint8_t i = 0;
-static float sum = 0.0;
-static float average = 0.0;
+float sum = 0.0;
 
 if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) <= PIN_RESET)
 {
@@ -248,10 +247,12 @@ else
 	array[i] = 0;
 }
 
-sum = array[0] + array[1] + array[2] + array[3] + array[4] + array[5] + array[6] + array[7] + array[8] + array[9];
-average = sum / 10;
+for (uint8_t k=0;k<MN;k++)
+{
+	sum += array[k];
+}
 
-if (i >= 9)
+if (i >= (MN-1))
 {
 	i = 0;
 }
@@ -260,7 +261,7 @@ else
 	i++;
 	}
 
-if (average >= 0.5)
+if ((sum / MN) >= 0.5)
 	{
 		buttom = 1;
 	}
